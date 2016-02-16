@@ -31,33 +31,6 @@ int main()
 	return 0;
 }
 
-//ISR to detect Smart Key button press
-void pressed()
-{
-	if(sv->pressed == 0)
-	{
-		if(digitalRead(BUTTON) == LOW)
-		{
-			delay(20);
-			if(digitalRead(BUTTON) == LOW) {
-				printf("Button Pressed\n");
-				sv->pressed = 1;
-			}
-		}
-	}
-	else
-	{
-		if(digitalRead(BUTTON) == HIGH)
-		{
-			delay(20);
-			if(digitalRead(BUTTON) == HIGH) {
-				printf("Button Released\n");
-				sv->pressed = 0;
-			}
-		}
-	}
-}
-
 //-----------------------------------------------------------
 //ISR to attempt authentication
 void authenticateWithSmartKey()

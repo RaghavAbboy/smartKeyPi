@@ -29,7 +29,6 @@ typedef struct shared_variable{
 sharedvariable gv;
 sharedvariable* sv = &gv;
 
-void pressed();
 void vibrate(int, int);
 void authenticateWithSmartKey();
 
