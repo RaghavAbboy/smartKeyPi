@@ -17,10 +17,15 @@ int main()
 	pinMode(VIB,OUTPUT);
 	
 	//wiringPiISR(BUTTON, INT_EDGE_BOTH, &pressed);
-	wiringPiISR(BUTTON, INT_EDGE_FALLING, &authenticateDigit);
+	wiringPiISR(BUTTON, INT_EDGE_FALLING, &authenticateWithSmartKey);
 		
 	while(1){
 		//vibrate(500, 300);
+		if(sv->state == 0) {
+			sv->index = 0;
+			sv->authenticatedDigits = 0;
+		}
+		
 	}
 
 	return 0;
@@ -55,49 +60,54 @@ void pressed()
 
 //-----------------------------------------------------------
 //ISR to attempt authentication
-void authenticateDigit()
+void authenticateWithSmartKey()
 {
-	//if(sv->pressed == 0)
-	//{
-
-	//remove
-	sv->currentDigit = sv->digits[2];
+	//Base Cases
+	//If free set the state
+	if(sv->state == 0) { sv->state = 1; }
+	if(sv->grantAccess == 1) { return; }
 	
-	int digit = sv->currentDigit;
+	int digit = sv->digits[sv->index];
 	printf("Digit to authenticate: %d\n", digit);
+	
+	//Register number of counts from the user
 	int count = 0;
-
 	if(digitalRead(BUTTON) == LOW)
 	{
 		delay(20);
 		if(digitalRead(BUTTON) == LOW) {
 			printf("Button Pressed\n");
-			sv->pressed = 1;
 
 			while(digitalRead(BUTTON) == LOW) {
 				vibrate(500,300);
-				count++;	
+			 	count++;	
 			}
 			
 			printf("Counts Held: %d\n", count);
-			if(count == digit) { printf("Digit %d authenticated!\n");  return; }
-			else { printf("Digit %d failed authentication.\n"); return; }
-		}
-	}
-
-	//}
-	/*
-	else
-	{
-		if(digitalRead(BUTTON) == HIGH)
-		{
-			delay(20);
-			if(digitalRead(BUTTON) == HIGH) {
-				printf("Button Released\n");
-				sv->pressed = 0;
+			if(count == digit) {
+				printf("Digit %d authenticated!\n", digit);  
+				sv->authenticatedDigits++;
+				sv->index++;
+			}
+			else {
+				//TODO: Track number of attempts
+				printf("Digit %d failed authentication.\n");
+				sv->authenticatedDigits = 0;
+				return;
 			}
 		}
-	} */
+	}
+	//End of count registration from the user
+
+	if(sv->authenticatedDigits == sv->length) {
+		sv->state = 0;
+		printf("*********Welcome Home!!!********\n");
+		printf("Access Granted.\n");
+		sv->grantAccess = 1;
+		delay(5000);
+		printf("Access Locked.\n");
+		sv->grantAccess = 0;
+	}
 }
 
 //Vibrate the motor for onTime
@@ -117,10 +127,15 @@ void init_sharedvariable()
 {
 	sv->b=0;
 	sv->pressed=0;
-	
+
 	sv->password = 123;
 	sv->length = 3;
 	init_setDigits(sv->password, sv->length);
+
+	sv->authenticatedDigits = 0;
+	sv->index = 0;
+
+	sv->grantAccess = 0;	
 }
 
 

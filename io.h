@@ -14,7 +14,10 @@ typedef struct shared_variable{
 	
 //helpers to enable normal operation
 	int state;
-	int currentDigit;	
+	int currentDigit;
+	int authenticatedDigits;
+	int index;	
+	int grantAccess;	
 
 	int password;
 	int length;
@@ -28,7 +31,7 @@ sharedvariable* sv = &gv;
 
 void pressed();
 void vibrate(int, int);
-void authenticateDigit();
+void authenticateWithSmartKey();
 
 //Initialization functions
 void init_sharedvariable();
